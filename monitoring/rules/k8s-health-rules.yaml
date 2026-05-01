@@ -1,0 +1,43 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: k8s-health-rules
+  namespace: monitoring
+spec:
+  groups:
+    - name: node-health
+      rules:
+        - alert: NodeMemoryPressureHigh
+          expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 0.9
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Node memory pressure is high"
+            description: "A node is above 90 percent memory usage."
+        - alert: NodeDiskAlmostFull
+          expr: (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"})) > 0.85
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Node disk usage is high"
+            description: "A filesystem is above 85 percent usage."
+    - name: workload-health
+      rules:
+        - alert: PodCrashLooping
+          expr: increase(kube_pod_container_status_restarts_total[15m]) > 3
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Pod is crashing repeatedly"
+            description: "A pod has restarted more than 3 times in 15 minutes."
+        - alert: PVCPending
+          expr: kube_persistentvolumeclaim_status_phase{phase="Pending"} == 1
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "PVC is pending"
+            description: "A PersistentVolumeClaim has been stuck in Pending state for 10 minutes."

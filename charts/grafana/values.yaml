@@ -1,0 +1,90 @@
+grafana:
+  fullnameOverride: grafana
+
+  adminUser: admin
+  adminPassword: CHANGE_ME
+
+  service:
+    type: ClusterIP
+
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClassName: standard
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
+
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          uid: prometheus
+          type: prometheus
+          access: proxy
+          url: http://monitoring-stack-kube-prometheus-prometheus.monitoring.svc:9090
+          isDefault: true
+          editable: false
+        - name: Loki
+          uid: loki
+          type: loki
+          access: proxy
+          url: http://loki-gateway.logging.svc:80
+          editable: false
+
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: projects
+          orgId: 1
+          folder: Projects
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/projects
+            foldersFromFilesStructure: true
+            allowUiUpdates: true
+
+  # Clone dashboards from the same repo into the mounted dashboard volume.
+  # The repo must be reachable from the cluster.
+  extraVolumes:
+    - name: dashboards
+      emptyDir: {}
+
+  extraVolumeMounts:
+    - name: dashboards
+      mountPath: /var/lib/grafana/dashboards
+
+  extraInitContainers:
+    - name: sync-dashboards
+      image: alpine/git:2.45.2
+      imagePullPolicy: IfNotPresent
+      command:
+        - sh
+        - -ec
+        - |
+          rm -rf /dashboards/* || true
+          git clone --depth 1 --branch main https://github.com/<ORG>/<REPO>.git /tmp/repo
+          mkdir -p /dashboards/projects
+          if [ -d /tmp/repo/grafana/dashboards/projects ]; then
+            cp -R /tmp/repo/grafana/dashboards/projects/* /dashboards/projects/ || true
+          fi
+      volumeMounts:
+        - name: dashboards
+          mountPath: /dashboards
+
+  # Minimal hardening.
+  grafana.ini:
+    auth.anonymous:
+      enabled: false
+    security:
+      disable_gravatar: true
+      allow_embedding: false

@@ -1,0 +1,28 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: custom-app-rules
+  namespace: monitoring
+spec:
+  groups:
+    - name: app-availability
+      rules:
+        - alert: AppTargetDown
+          expr: up == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Prometheus target is down"
+            description: "Target {{ $labels.instance }} in job {{ $labels.job }} has been unreachable for 2 minutes."
+    - name: app-errors
+      rules:
+        - alert: HighHTTP5xxRate
+          expr: |
+            sum by (job, instance) (rate(http_requests_total{status=~"5.."}[5m])) > 0.2
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High 5xx rate"
+            description: "Job {{ $labels.job }} on {{ $labels.instance }} is returning 5xx responses at a sustained rate."

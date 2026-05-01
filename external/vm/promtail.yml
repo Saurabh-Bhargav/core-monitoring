@@ -1,0 +1,28 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /var/lib/promtail/positions.yaml
+
+clients:
+  - url: http://loki.logging.svc.cluster.local:80/loki/api/v1/push
+
+scrape_configs:
+  - job_name: pm2-logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: pm2
+          host: ${HOSTNAME}
+          __path__: /home/*/.pm2/logs/*.log
+
+  - job_name: syslog
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: syslog
+          host: ${HOSTNAME}
+          __path__: /var/log/*.log
