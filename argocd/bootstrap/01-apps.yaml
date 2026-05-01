@@ -8,7 +8,7 @@ metadata:
 spec:
   project: observability-tools
   source:
-    repoURL: https://github.com/<ORG>/<REPO>.git
+    repoURL: https://github.com/Saurabh-Bhargav/core-monitoring.git
     targetRevision: main
     path: charts/prometheus-stack
   destination:
