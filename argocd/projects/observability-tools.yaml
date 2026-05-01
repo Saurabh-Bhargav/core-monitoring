@@ -6,7 +6,7 @@ metadata:
 spec:
   description: GitOps project for the observability platform
   sourceRepos:
-    - https://github.com/<ORG>/<REPO>.git
+    - https://github.com/Saurabh-Bhargav/core-monitoring.git
     - https://prometheus-community.github.io/helm-charts
     - https://grafana-community.github.io/helm-charts
   destinations:

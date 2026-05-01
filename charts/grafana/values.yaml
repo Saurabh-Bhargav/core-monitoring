@@ -2,7 +2,7 @@ grafana:
   fullnameOverride: grafana
 
   adminUser: admin
-  adminPassword: CHANGE_ME
+  adminPassword: Admin@12321142342
 
   service:
     type: ClusterIP
@@ -72,7 +72,7 @@ grafana:
         - -ec
         - |
           rm -rf /dashboards/* || true
-          git clone --depth 1 --branch main https://github.com/<ORG>/<REPO>.git /tmp/repo
+          git clone --depth 1 --branch main https://github.com/Saurabh-Bhargav/core-monitoring.git /tmp/repo
           mkdir -p /dashboards/projects
           if [ -d /tmp/repo/grafana/dashboards/projects ]; then
             cp -R /tmp/repo/grafana/dashboards/projects/* /dashboards/projects/ || true
